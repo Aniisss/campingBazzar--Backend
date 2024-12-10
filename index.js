@@ -10,44 +10,7 @@ app.use(express.json());
 app.use("/api/users", userRouter);
 app.use("/api/items", itemRouter)
 
-const { initializeApp } = require("firebase/app");
-const { getAuth, signInWithEmailAndPassword } = require("firebase/auth");
-const authenticate = require("./src/middlewares/auth");
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyC3PGPKDqmTSNiG7POgvNu2KMkPvVSdX1M",
-  authDomain: "campingbazzar.firebaseapp.com",
-  projectId: "campingbazzar",
-  storageBucket: "campingbazzar.firebasestorage.app",
-  messagingSenderId: "632190892128",
-  appId: "1:632190892128:web:19032accd48b3e5507ab05",
-  measurementId: "G-XRCD41V4YH",
-};
-
-// Initialize Firebase
-const firebase = initializeApp(firebaseConfig);
-const auth = getAuth();
-
-// Obtaining TokenID from firebase using the firebase_clientSDK
-
-async function getToken() {
-  const email = "anis.nsir@supcom.tn";
-  const password = "password";
-  const userCredential = await signInWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
-  const user = userCredential.user;
-
-  const token = await user.getIdToken();
-  console.log("token :", token);
-}
 
 
 
