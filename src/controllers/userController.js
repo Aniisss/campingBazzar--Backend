@@ -6,6 +6,7 @@ async function signIn(req, res) {
     try {
         console.log('Someone is calling the api ........')
         const userID = req.user.user_id; // Extract userID from authenticated token
+        
         const userRef = db.collection('users').doc(userID);
         const userDoc = await userRef.get();
 
@@ -24,6 +25,7 @@ async function signIn(req, res) {
                     details: error.details.map((err) => err.message),
                 });
             }
+           
 
             // Extract validated data
             const email = req.user.email;
