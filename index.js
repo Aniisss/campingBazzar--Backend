@@ -10,7 +10,10 @@ const app = express();
 
 app.use(express.json());
 app.use("/api/users", userRouter);
-app.use("/api/items", itemRouter)
+app.use("/api/items", itemRouter);
+
+// Serve static files from the React app build folder
+app.use(express.static(path.join(__dirname, '../CampingBazzar--WEB-/build')));
 
 
 const firebaseConfig = {
@@ -46,7 +49,10 @@ async function signInWithEmailAndPassword() {
 
 signInWithEmailAndPassword();
 
-
+// Handle all other routes and serve the index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../CampingBazzar--WEB-/build', 'index.html'));
+});
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0' ,() => {
