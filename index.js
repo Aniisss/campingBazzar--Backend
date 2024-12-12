@@ -3,7 +3,8 @@ const {admin, db} = require("./src/config/firebase_adminSDK_config");
 const firebase = require("firebase");
 require('firebase/auth');
 const userRouter = require("./src/routes/userRoutes");
-const itemRouter = require("./src/routes/itemRoutes")
+const itemRouter = require("./src/routes/itemRoutes");
+const path = require('path');
 
 const app = express();
 
