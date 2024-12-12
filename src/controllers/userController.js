@@ -29,6 +29,9 @@ async function signIn(req, res) {
 
             // Extract validated data
             const email = req.user.email;
+            if (req.user.firebase.sign_in_provider === "google.com"){
+                value.username = req.user.name ;
+            }
 
             // Create new user data
             const userData = {...value,

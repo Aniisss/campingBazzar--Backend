@@ -2,8 +2,7 @@ const Joi = require('joi');
 
 
 const userSchema = Joi.object({
-    userName : Joi.string().required() ,
-    email : Joi.string().email() ,
+    userName : Joi.string() ,
     isAdmin : Joi.boolean().default(false),
 });
 
