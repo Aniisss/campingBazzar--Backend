@@ -11,9 +11,13 @@ const geoFirestore = geo.collection("items");
 async function createItem(req, res) {
     try {
 
+        console.log('Someone is creating an item .....');
+
         //extracting the location and deleting from request to validate without location
         const location = req.body.location ; 
         delete req.body.location;
+
+        const userID = req.user.user_id;
 
         // Validate request body
         const { error, value} = itemSchema.validate(req.body, { abortEarly: true });
@@ -28,6 +32,7 @@ async function createItem(req, res) {
         await geoFirestore.doc(itemID).set({
           ...value,
           itemID : itemID ,
+          userID : userID ,
           createdAt : Timestamp.now(),
           coordinates: new admin.firestore.GeoPoint(
             location.latitude,
