@@ -85,13 +85,15 @@ async function uploadImage(req, res) {
   }
 }
 
-async function getItems(req ,res){
+async function getItems(req, res) {
   try {
     const itemsCollection = db.collection('items');
-    const snapshot = await itemsCollection.get();
+
+    // Query to get items sorted by the 'createdAt' field in descending order (latest first)
+    const snapshot = await itemsCollection.orderBy('createdAt', 'desc').get();
 
     if (snapshot.empty) {
-      return res.status(404).json({ message: 'No items found' , items : []});
+      return res.status(404).json({ message: 'No items found', items: [] });
     }
 
     // Map through the documents and extract only the attributes needed
@@ -102,17 +104,19 @@ async function getItems(req ,res){
         title: data.title || '', // Replace with your attribute names
         userID: data.userID || '',
         price: data.price || 0,
-        imageUrl: data.imageUrl || '',
+        image: data.image || '',
         description: data.description || '',
+        createdAt: data.createdAt || Date.now(), // Ensure 'createdAt' is included
       };
     });
 
-    return res.status(200).json({ message: 'Items retreived successfully !' , items : items}); // Send the items as a JSON response
+    return res.status(200).json({ message: 'Items retrieved successfully!', items: items });
 
   } catch (error) {
     console.error('Error fetching items:', error);
     return res.status(500).json({ message: 'Failed to fetch items', error: error.message });
   }
 }
+
 
 module.exports = {createItem , uploadImage  , getItems};
