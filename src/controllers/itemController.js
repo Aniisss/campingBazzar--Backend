@@ -85,5 +85,34 @@ async function uploadImage(req, res) {
   }
 }
 
+async function getItems(req ,res){
+  try {
+    const itemsCollection = db.collection('items');
+    const snapshot = await itemsCollection.get();
 
-module.exports = {createItem , uploadImage};
+    if (snapshot.empty) {
+      return res.status(404).json({ message: 'No items found' , items : []});
+    }
+
+    // Map through the documents and extract only the attributes needed
+    const items = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        itemID: doc.id, // Optionally include the document ID
+        title: data.title || '', // Replace with your attribute names
+        userID: data.userID || '',
+        price: data.price || 0,
+        imageUrl: data.imageUrl || '',
+        description: data.description || '',
+      };
+    });
+
+    return res.status(200).json({ message: 'Items retreived successfully !' , items : items}); // Send the items as a JSON response
+
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    return res.status(500).json({ message: 'Failed to fetch items', error: error.message });
+  }
+}
+
+module.exports = {createItem , uploadImage  , getItems};
