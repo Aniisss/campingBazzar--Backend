@@ -88,27 +88,55 @@ async function uploadImage(req, res) {
 async function getItems(req, res) {
   try {
     const itemsCollection = db.collection('items');
+    const usersCollection = db.collection('users');  // Reference to the 'users' collection
 
     // Query to get items sorted by the 'createdAt' field in descending order (latest first)
     const snapshot = await itemsCollection.orderBy('createdAt', 'desc').get();
 
     if (snapshot.empty) {
-      return res.status(404).json({ message: 'No items found', items: [] });
+      return res.status(200).json({ message: 'No items found', items: [] });
     }
 
-    // Map through the documents and extract only the attributes needed
-    const items = snapshot.docs.map((doc) => {
+    // Create an array to hold the items with the user's name
+    const items = [];
+
+    // Loop through the items and fetch the user data based on userID
+    for (const doc of snapshot.docs) {
       const data = doc.data();
-      return {
-        itemID: doc.id, // Optionally include the document ID
-        title: data.title || '', // Replace with your attribute names
-        userID: data.userID || '',
-        price: data.price || 0,
-        image: data.image || '',
-        description: data.description || '',
-        createdAt: data.createdAt || Date.now(), // Ensure 'createdAt' is included
-      };
-    });
+      const userID = data.userID || '';
+
+      // Fetch the user document by userID
+      const userDoc = await usersCollection.doc(userID).get();
+
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        const userName = userData?.userName || 'Unknown'; // Use 'Unknown' if no username is found
+        items.push({
+          itemID: doc.id, // Optionally include the document ID
+          title: data.title || '', // Replace with your attribute names
+          userName: userName, // Adding the userName here
+          userID: userID,
+          price: data.price || 0,
+          image: data.image || '',
+          category: data.category,
+          description: data.description || '',
+          createdAt: data.createdAt || Date.now(), // Ensure 'createdAt' is included
+        });
+      } else {
+        // If user does not exist, push the item with a placeholder name
+        items.push({
+          itemID: doc.id,
+          title: data.title || '',
+          userName: 'Unknown User',
+          userID: userID,
+          price: data.price || 0,
+          image: data.image || '',
+          category: data.category,
+          description: data.description || '',
+          createdAt: data.createdAt || Date.now(),
+        });
+      }
+    }
 
     return res.status(200).json({ message: 'Items retrieved successfully!', items: items });
 
@@ -117,6 +145,7 @@ async function getItems(req, res) {
     return res.status(500).json({ message: 'Failed to fetch items', error: error.message });
   }
 }
+
 
 
 module.exports = {createItem , uploadImage  , getItems};
