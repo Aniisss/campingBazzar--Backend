@@ -90,6 +90,9 @@ async function getItems(req, res) {
     const itemsCollection = db.collection('items');
     const usersCollection = db.collection('users');  // Reference to the 'users' collection
 
+    //check if the item is liked by the authenticated user 
+    const authUserID = req.headers['user_id'] ? req.headers['user_id'] : '';
+
     // Query to get items sorted by the 'createdAt' field in descending order (latest first)
     const snapshot = await itemsCollection.orderBy('createdAt', 'desc').get();
 
@@ -108,9 +111,23 @@ async function getItems(req, res) {
       // Fetch the user document by userID
       const userDoc = await usersCollection.doc(userID).get();
 
+      //initialize isLiked variable
+      let isLiked ;
+
       if (userDoc.exists) {
         const userData = userDoc.data();
         const userName = userData?.userName || 'Unknown'; // Use 'Unknown' if no username is found
+        // Checking if the article is liked by the authUser
+        const favouriteDoc = await db
+          .collection("favourites")
+          .where("userID", "==", authUserID)
+          .where("itemID", "==", doc.id)
+          .get();
+        if (favouriteDoc.size == 1) {
+          isLiked = true; 
+        } else {
+          isLiked = false
+        }
         items.push({
           itemID: doc.id, // Optionally include the document ID
           title: data.title || '', // Replace with your attribute names
@@ -121,6 +138,7 @@ async function getItems(req, res) {
           category: data.category,
           description: data.description || '',
           createdAt: data.createdAt || Date.now(), // Ensure 'createdAt' is included
+          isLiked : isLiked
         });
       } else {
         // If user does not exist, push the item with a placeholder name
