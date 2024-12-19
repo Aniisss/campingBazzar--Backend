@@ -146,6 +146,37 @@ async function getItems(req, res) {
   }
 }
 
+async function addFavourite(req, res) {
+  try {
+    const userID = req.user.user_id;
+    const itemID = req.params.itemID;
+
+    // Checking if the article is already added by the user
+    const favouriteDoc = await db
+      .collection("favourites")
+      .where("userID", "==", userID)
+      .where("itemID", "==", itemID)
+      .get();
+    if (favouriteDoc.size == 1) {
+      // Deleting the favourite document (dislike)
+      const batch = db.batch();
+      batch.delete(favouriteDoc.docs[0].ref);
+      await batch.commit();
+      return res.status(200).send({ message: "item removed successfully" });
+    }
+    // Creating the favourite Document with added article
+    const favouriteRef = db.collection("favourites").doc();
+    await favouriteRef.set({
+      userID: userID,
+      itemID: itemID,
+    });
+
+    res.status(200).send({ message: "Item Added successfully " });
+  } catch (error) {
+    res.status(500).send({ message: "internal server error", error: error });
+  }
+}
 
 
-module.exports = {createItem , uploadImage  , getItems};
+
+module.exports = {createItem , uploadImage  , getItems , addFavourite};

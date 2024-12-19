@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../middlewares/auth');
-const {createItem , uploadImage, getItems} = require('../controllers/itemController');
+const {createItem , uploadImage, getItems, addFavourite} = require('../controllers/itemController');
 
 
 // for uploading images
@@ -14,5 +14,6 @@ const upload = multer({ dest: 'uploads/' }); // Temporary storage
 router.post('/createItem', authenticate, createItem);
 router.post('/upload' , upload.single('image'),authenticate , uploadImage); 
 router.get('/getItems' , getItems);
+router.post('/addFavourite/:itemID' , authenticate ,addFavourite);
 
 module.exports = router;
