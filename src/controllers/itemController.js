@@ -196,5 +196,56 @@ async function addFavourite(req, res) {
 }
 
 
+async function getFavourites(req, res) {
+  try {
+    const authUserID = req.user.user_id; // Retrieve authenticated user ID from the request header
 
-module.exports = {createItem , uploadImage  , getItems , addFavourite};
+    const favouritesCollection = db.collection('favourites');
+    const itemsCollection = db.collection('items');
+
+    // Query to get all favorites for the authenticated user
+    const favouritesSnapshot = await favouritesCollection
+      .where("userID", "==", authUserID)
+      .get();
+
+    if (favouritesSnapshot.empty) {
+      return res.status(200).json({ message: "No favourites found", items: [] });
+    }
+
+    const favouriteItems = [];
+
+    // Loop through the favourites to fetch item details
+    for (const favouriteDoc of favouritesSnapshot.docs) {
+      const favouriteData = favouriteDoc.data();
+      const itemID = favouriteData.itemID;
+
+      // Fetch the item details from the items collection
+      const itemDoc = await itemsCollection.doc(itemID).get();
+      if (itemDoc.exists) {
+        const itemData = itemDoc.data();
+        favouriteItems.push({
+          itemID: itemID, // Include the document ID
+          title: itemData.title || '',
+          price: itemData.price || 0,
+          image: itemData.image || '',
+          category: itemData.category || '',
+          description: itemData.description || '',
+          createdAt: itemData.createdAt || Date.now(),
+        });
+      }
+    }
+
+    return res.status(200).json({
+      message: "Favourites retrieved successfully!",
+      items: favouriteItems,
+    });
+  } catch (error) {
+    console.error("Error fetching favourites:", error);
+    return res.status(500).json({ message: "Failed to fetch favourites", error: error.message });
+  }
+}
+
+
+
+
+module.exports = {createItem , uploadImage  , getItems , addFavourite, getFavourites};
