@@ -231,6 +231,7 @@ async function getFavourites(req, res) {
           category: itemData.category || '',
           description: itemData.description || '',
           createdAt: itemData.createdAt || Date.now(),
+          isLiked : true
         });
       }
     }
