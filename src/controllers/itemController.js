@@ -3,6 +3,7 @@ const itemSchema = require('../models/item');
 const { GeoFirestore } = require('geofirestore'); 
 const { Timestamp } = require('firebase-admin').firestore;
 const { BlobServiceClient } = require('@azure/storage-blob');
+const index = require('../config/algolia');
 
 const geo = new GeoFirestore(db);
 const geoFirestore = geo.collection("items");
@@ -247,6 +248,71 @@ async function getFavourites(req, res) {
 }
 
 
+async function search (req, res) {
+  try {
+    const keyword = req.query.keyword || ''; // Get search keyword from query parameters
+    const authUserID = req.headers['user_id'] ?  req.headers['user_id'] : '';
+  
+
+    if (!keyword) {
+      return res.status(400).json({ message: 'Keyword is required' });
+    }
+
+    // Perform a search on Algolia
+    const searchResults = await index.search(keyword, {
+      attributesToRetrieve: ['objectID', 'userID', 'title', 'price', 'image', 'category', 'description', 'createdAt'],
+      hitsPerPage: 20, // Limit the number of results per page
+    });
+
+    if (!searchResults.hits.length) {
+      return res.status(200).json({ message: 'No items found', items: [] });
+    }
+
+    const items = [];
+
+    // Process each hit and retrieve user data
+    for (const hit of searchResults.hits) {
+      let isLiked ;
+
+      const userDoc = await db.collection('users').doc(hit.userID).get();
+      const userData = userDoc.data();
+      const userName = userData?.userName
 
 
-module.exports = {createItem , uploadImage  , getItems , addFavourite, getFavourites};
+      const favouriteDoc = await db
+          .collection("favourites")
+          .where("userID", "==", authUserID)
+          .where("itemID", "==", hit.objectID)
+          .get();
+        if (favouriteDoc.size == 1) {
+          isLiked = true; 
+        } else {
+          isLiked = false
+        }
+
+    
+      // Add the formatted item to the response array
+      items.push({
+        itemID: hit.objectID,
+        title: hit.title || '',
+        userName: userName,
+        userID: hit.userID,
+        price: hit.price || 0,
+        image: hit.image || '',
+        category: hit.category || '',
+        description: hit.description || '',
+        createdAt: hit.createdAt || Date.now(),
+        isLiked: isLiked,
+      });
+    }
+
+    return res.status(200).json({ message: 'Search results retrieved successfully!', items: items });
+  } catch (error) {
+    console.error('Error performing search:', error);
+    return res.status(500).json({ message: 'Failed to perform search', error: error.message });
+  }
+
+};
+
+
+module.exports = {createItem , uploadImage  , getItems , addFavourite, getFavourites , search};

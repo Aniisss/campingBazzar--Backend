@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../middlewares/auth');
-const {createItem , uploadImage, getItems, addFavourite, getFavourites} = require('../controllers/itemController');
+const {createItem , uploadImage, getItems, addFavourite, getFavourites, search} = require('../controllers/itemController');
 
 
 // for uploading images
@@ -16,5 +16,6 @@ router.post('/upload' , upload.single('image'),authenticate , uploadImage);
 router.get('/getItems' , getItems);
 router.post('/addFavourite/:itemID' , authenticate ,addFavourite);
 router.get('/getFavourites' , authenticate , getFavourites) ;
+router.get('/search' , search); 
 
 module.exports = router;

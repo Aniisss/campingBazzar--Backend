@@ -5,6 +5,8 @@ require('firebase/auth');
 const userRouter = require("./src/routes/userRoutes");
 const itemRouter = require("./src/routes/itemRoutes");
 const path = require('path');
+const index = require("./src/config/algolia");
+
 
 const app = express();
 
@@ -54,6 +56,64 @@ signInWithEmailAndPassword();
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../CampingBazzar--WEB-/build', 'index.html'));
 });
+
+
+
+
+async function addToAlgolia() {
+  try {
+    const snapshot = await db.collection('items').get();
+
+    if (snapshot.empty) {
+      console.log('No items found in Firestore.');
+      return;
+    }
+
+    const data = snapshot.docs.map(doc => {
+      const item = doc.data();
+      return {
+        objectID: doc.id,       // Use Firestore document ID as objectID
+        userID : item.userID ,
+        title: item.title,      // Extract title field
+        category: item.category, // Extract category field
+        description: item.description, // Extract description field
+        price: item.price,      // Extract price field
+        createdAt : item.createdAt,
+        image : item.image
+      };
+    });
+
+    // Save objects to Algolia
+    const result = await index.saveObjects(data);
+    console.log('Objects saved to Algolia:', result.objectIDs);
+  } catch (err) {
+    console.error('Error adding to Algolia:', err);
+  }
+}
+
+// Execute the function
+//addToAlgolia();
+
+//Listen for changes in the articles collection
+db.collection('items').onSnapshot((snapshot) => {
+  snapshot.docChanges().forEach(change => {
+    const data = change.doc.data();
+    const objectID = change.doc.id;  
+    if (change.type === 'added' || change.type === 'modified') {
+      index.saveObject({
+        ...data,
+        objectID
+      }).then(() => {
+        console.log('Article indexed in Algolia:', objectID);
+      });
+    } else if (change.type === 'removed') {
+      index.deleteObject(objectID).then(() => {
+        console.log('Article removed from Algolia:', objectID);
+      });
+    }
+  });
+});
+
 
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0' ,() => {
