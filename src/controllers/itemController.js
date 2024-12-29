@@ -118,6 +118,7 @@ async function getItems(req, res) {
       if (userDoc.exists) {
         const userData = userDoc.data();
         const userName = userData?.userName || 'Unknown'; // Use 'Unknown' if no username is found
+        const email = userData?.email || 'Unknown' ;
         // Checking if the article is liked by the authUser
         const favouriteDoc = await db
           .collection("favourites")
@@ -133,6 +134,7 @@ async function getItems(req, res) {
           itemID: doc.id, // Optionally include the document ID
           title: data.title || '', // Replace with your attribute names
           userName: userName, // Adding the userName here
+          email : email, 
           userID: userID,
           price: data.price || 0,
           image: data.image || '',
