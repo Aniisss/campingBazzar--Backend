@@ -55,12 +55,6 @@ async function signIn(req, res) {
         });
     }
 }
-async function login(req,res) {
-    try {
-        
-    } catch (error) {
-        
-    }
-}
+
 
 module.exports = { signIn };

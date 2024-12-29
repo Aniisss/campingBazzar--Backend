@@ -6,9 +6,18 @@ const userRouter = require("./src/routes/userRoutes");
 const itemRouter = require("./src/routes/itemRoutes");
 const path = require('path');
 const index = require("./src/config/algolia");
+const cors = require('cors');
 
 
 const app = express();
+
+const corsOptions = {
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST'], // Specify allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Specify allowed headers
+};
+
+app.use(cors(corsOptions));
 
 
 app.use(express.json());

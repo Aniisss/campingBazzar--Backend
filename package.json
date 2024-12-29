@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/storage-blob": "^12.26.0",
     "algoliasearch": "^4.24.0",
+    "cors": "^2.8.5",
     "express": "^4.21.1",
     "firebase": "^8.10.1",
     "firebase-admin": "^13.0.1",
